@@ -1,0 +1,119 @@
+\documentclass[12pt]{article}
+\usepackage[romanian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\title{Tema 4}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+Fie matricea de criptare \( A = \begin{pmatrix} 2 & 3 \\ 7 & 8 \end{pmatrix} \in \mathcal{M}_{2 \times 2}(\mathbb{Z}_{26}) \). 
+Determinați matricea de decriptare și decriptați mesajul FWMDIQ.
+
+
+Pasul 1: Verificarea inversabilității matricei în \(\mathbb{Z}_{26}\)
+\[
+\det(A) = 2 \cdot 8 - 3 \cdot 7 = 16 - 21 = -5 \equiv 21 \pmod{26}  
+\]
+\[
+(21, 26) = 1 \quad \text{(numere prime între ele)}
+\]
+Deci matricea este inversabilă.
+
+Pasul 2: Determinarea inversei matricei în \(\mathbb{Z}_{26}\)
+\[
+A^{-1} = (\det A)^{-1} \cdot \begin{pmatrix} d & -b \\ -c & a \end{pmatrix} \pmod{26} = 21^{-1} \cdot \begin{pmatrix} 8 & -3 \\ -7 & 2 \end{pmatrix} \pmod{26}
+\]
+
+Căutăm \(x\) astfel încât \(21x \equiv 1 \pmod{26}\).
+
+Aplicăm algoritmul lui Euclid extins:
+\[
+\begin{aligned}
+26 &= 21 \cdot 1 + 5 \\
+21 &= 5 \cdot 4 + 1 \\
+5 &= 1 \cdot 5 + 0
+\end{aligned}
+\]
+
+Determinăm coeficienții Bézout:
+\[
+\begin{aligned}
+1 &= 21 - 5 \cdot 4 \\
+5 &= 26 - 21 \cdot 1 \\
+1 &= 21 - (26 - 21) \cdot 4 = 21 - 26 \cdot 4 + 21 \cdot 4 = 21 \cdot 5 - 26 \cdot 4
+\end{aligned}
+\]
+
+Obținem:
+\[
+21 \cdot 5 \equiv 1 \pmod{26} \Rightarrow 21^{-1} \equiv 5 \pmod{26}
+\]
+
+\[
+A^{-1} = 5 \cdot \begin{pmatrix} 8 & -3 \\ -7 & 2 \end{pmatrix} \pmod{26}
+\]
+
+\[
+\begin{aligned}
+5 \cdot 8 &= 40 \equiv 14 \pmod{26} \\
+5 \cdot (-3) &= -15 \equiv 11 \pmod{26} \quad (\text{deoarece } -15 + 26 = 11) \\
+5 \cdot (-7) &= -35 \equiv 17 \pmod{26} \quad (\text{deoarece } -35 + 52 = 17) \\
+5 \cdot 2 &= 10 \equiv 10 \pmod{26}
+\end{aligned}
+\]
+
+\[
+A^{-1} = \begin{pmatrix} 14 & 11 \\ 17 & 10 \end{pmatrix} \pmod{26}
+\]
+
+Pasul 3: Decriptarea mesajului FWMDIQ
+\[
+\begin{aligned}
+\text{F} &\rightarrow 5 \\
+\text{W} &\rightarrow 22 \\
+\text{M} &\rightarrow 12 \\
+\text{D} &\rightarrow 3 \\
+\text{I} &\rightarrow 8 \\
+\text{Q} &\rightarrow 16
+\end{aligned}
+\]
+
+Grupăm literele în perechi: \((5, 22)\), \((12, 3)\), \((8, 16)\).
+
+\textbf{Perechea 1: (5, 22)}
+\[
+\begin{aligned}
+x &= 14 \cdot 5 + 11 \cdot 22 = 70 + 242 = 312 \equiv 312 - 26 \cdot 12 = 312 - 312 = 0 \pmod{26} \\
+y &= 17 \cdot 5 + 10 \cdot 22 = 85 + 220 = 305 \equiv 305 - 26 \cdot 11 = 305 - 286 = 19 \pmod{26}
+\end{aligned}
+\]
+Obținem \((0, 19) \rightarrow (A, T)\)
+
+\textbf{Perechea 2: (12, 3)}
+\[
+\begin{aligned}
+x &= 14 \cdot 12 + 11 \cdot 3 = 168 + 33 = 201 \equiv 201 - 26 \cdot 7 = 201 - 182 = 19 \pmod{26} \\
+y &= 17 \cdot 12 + 10 \cdot 3 = 204 + 30 = 234 \equiv 234 - 26 \cdot 9 = 234 - 234 = 0 \pmod{26}
+\end{aligned}
+\]
+Obținem \((19, 0) \rightarrow (T, A)\)
+
+\textbf{Perechea 3: (8, 16)}
+\[
+\begin{aligned}
+x &= 14 \cdot 8 + 11 \cdot 16 = 112 + 176 = 288 \equiv 288 - 26 \cdot 11 = 288 - 286 = 2 \pmod{26} \\
+y &= 17 \cdot 8 + 10 \cdot 16 = 136 + 160 = 296 \equiv 296 - 26 \cdot 11 = 296 - 286 = 10 \pmod{26}
+\end{aligned}
+\]
+Obținem \((2, 10) \rightarrow (C, K)\)
+
+Rezultatul final : ATTACK
+
+\end{document}
