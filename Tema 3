@@ -1,0 +1,325 @@
+\documentclass[12pt]{article}
+\usepackage[romanian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{hyperref}
+\geometry{a4paper, margin=2.5cm}
+
+% Setări pentru listings
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    breaklines=true,
+    captionpos=b,
+    showstringspaces=false
+}
+
+\title{Tema 3}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Exercițiul 1: Algoritmul Solovay-Strasen}
+
+\begin{lstlisting}
+import random
+
+def cmmdc(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+def putere_modulo(baza, exponent, mod):
+    rezultat = 1
+    baza = baza % mod
+    while exponent > 0:
+        if exponent & 1:
+            rezultat = (rezultat * baza) % mod
+        baza = (baza * baza) % mod
+        exponent >>= 1
+    return rezultat
+
+def simbol_jacobi(a, n):
+    if n <= 0 or n % 2 == 0:
+        return 0
+    
+    rez = 1
+    a = a % n
+    
+    while a != 0:
+        while a % 2 == 0:
+            a //= 2
+            if n % 8 == 3 or n % 8 == 5:
+                rez = -rez
+        
+        a, n = n, a
+        if a % 4 == 3 and n % 4 == 3:
+            rez = -rez
+        a = a % n
+    
+    return rez if n == 1 else 0
+
+def test_solovay_strassen(n, k=5):
+
+    if n < 2:
+        return False, 0
+    if n == 2:
+        return True, 1
+    if n % 2 == 0:
+        return False, 0
+    
+    for i in range(k):
+        a = random.randint(2, n - 2)
+
+        if cmmdc(a, n) != 1:
+            return False, 0
+        
+        j = simbol_jacobi(a, n)
+
+        exp = (n - 1) // 2
+        p = putere_modulo(a, exp, n)
+        
+        if p != j % n:
+            return False, 0
+
+    prob = 1 - (0.5) ** k
+    return True, prob
+
+\end{lstlisting}
+
+\newpage
+\section{Exercițiul 2: Algoritmul de factorizare al lui Fermat}
+
+\begin{lstlisting}
+import math
+
+def factorizare_fermat(n):
+
+    if n % 2 == 0:
+        return (2, n // 2)
+    
+    x = math.isqrt(n)
+    if x * x == n:
+        return (x, x)
+    
+    x += 1
+    while True:
+        y2 = x * x - n
+        y = math.isqrt(y2)
+        
+        if y * y == y2:
+            # Am gasit o factorizare
+            return (x - y, x + y)
+        
+        x += 1
+        
+        if x > (n + 1) // 2:
+            return (n, 1)  # n este prim
+
+def factorizare_fermat_completa(n):
+
+    factori = []
+    numar = n
+    
+    while numar > 1:
+        if numar % 2 == 0:
+            factori.append(2)
+            numar //= 2
+            continue
+        
+        a, b = factorizare_fermat(numar)
+        
+        if b == 1: 
+            factori.append(a)
+            break
+        else:
+            factori.append(a)
+            numar = b
+    
+    return sorted(factori)
+
+\end{lstlisting}
+-
+\section*{Exercițiul 5:}
+Verificați folosind algoritmul Solovay-Strassen dacă 661 este prim sau compus (cu cel mult 3 martori).
+
+Numărul \(n = 661\) este impar și \(n > 2\).
+
+Verificăm dacă 661 este divizibil cu numere prime mici:
+\[
+\begin{aligned}
+661 &\div 3 = 220 \text{ rest } 1 \\
+661 &\div 5 = 132 \text{ rest } 1 \\
+661 &\div 7 = 94 \text{ rest } 3 \\
+661 &\div 11 = 60 \text{ rest } 1 \\
+\end{aligned}
+\]
+
+Nu s-a găsit niciun divizor. Vom aplica testul Solovay-Strassen pentru a determina primalitatea.
+
+Pentru un număr \(n\) prim impar, testul Solovay-Strassen cere ca:
+\[
+b^{\frac{n-1}{2}} \equiv \left(\frac{b}{n}\right) \pmod{n}, \quad \forall b \in \{1,2,\dots,n-1\}
+\]
+
+Pentru \(n = 661\), avem:
+\[
+n - 1 = 660 \quad \Rightarrow \quad \frac{n-1}{2} = 330
+\]
+
+Vom testa cu trei martori: \(b = 2\), \(b = 3\) și \(b = 5\).
+
+\subsection*{Testul cu martorul \(b = 2\)}
+\[
+\begin{aligned}
+2^{10} &= 1024 \equiv 363 \pmod{661} \\
+2^{20} &\equiv 363^2 = 131769 \equiv 131769 - 661 \times 199 = 131769 - 131539 = 230 \pmod{661} \\
+2^{40} &\equiv 230^2 = 52900 \equiv 52900 - 661 \times 80 = 52900 - 52880 = 20 \pmod{661} \\
+2^{80} &\equiv 20^2 = 400 \pmod{661} \\
+2^{160} &\equiv 400^2 = 160000 \equiv 160000 - 661 \times 242 = 160000 - 159962 = 38 \pmod{661} \\
+2^{320} &\equiv 38^2 = 1444 \equiv 1444 - 661 \times 2 = 1444 - 1322 = 122 \pmod{661} \\
+2^{330} &= 2^{320} \times 2^{10} \equiv 122 \times 363 = 44286 \\
+&\equiv 44286 - 661 \times 67 = 44286 - 44287 = -1 \equiv 660 \pmod{661}
+\end{aligned}
+\]
+
+Deci:
+\[
+2^{330} \equiv -1 \pmod{661}
+\]
+
+Conform proprietății simbolului Jacobi:
+\[
+\left(\frac{2}{n}\right) = (-1)^{\frac{n^2-1}{8}}
+\]
+
+Pentru \(n = 661\):
+\[
+n^2 - 1 = 661^2 - 1 = 436921 - 1 = 436920
+\]
+\[
+\frac{n^2-1}{8} = \frac{436920}{8} = 54615 \quad \text{(impar)}
+\]
+
+Prin urmare:
+\[
+\left(\frac{2}{661}\right) = (-1)^{54615} = -1
+\]
+\[
+2^{330} \equiv -1 \pmod{661}, \quad \left(\frac{2}{661}\right) = -1
+\]
+Egalitatea este satisfăcută. Testul este trecut pentru \(b = 2\).
+
+\subsection*{Testul cu martorul \(b = 3\)}
+
+\[
+\begin{aligned}
+3^5 &= 243 \\
+3^{10} &= 243^2 = 59049 \equiv 59049 - 661 \times 89 = 59049 - 58829 = 220 \pmod{661} \\
+3^{20} &\equiv 220^2 = 48400 \equiv 48400 - 661 \times 73 = 48400 - 48253 = 147 \pmod{661} \\
+3^{40} &\equiv 147^2 = 21609 \equiv 21609 - 661 \times 32 = 21609 - 21152 = 457 \pmod{661} \\
+3^{80} &\equiv 457^2 = 208849 \equiv 208849 - 661 \times 316 = 208849 - 208876 = -27 \equiv 634 \pmod{661} \\
+3^{160} &\equiv 634^2 = 401956 \equiv 401956 - 661 \times 608 = 401956 - 401888 = 68 \pmod{661} \\
+3^{320} &\equiv 68^2 = 4624 \equiv 4624 - 661 \times 7 = 4624 - 4627 = -3 \equiv 658 \pmod{661} \\
+3^{330} &= 3^{320} \times 3^{10} \equiv 658 \times 220 = 144760 \\
+&\equiv 144760 - 661 \times 219 = 144760 - 144759 = 1 \pmod{661}
+\end{aligned}
+\]
+
+Deci:
+\[
+3^{330} \equiv 1 \pmod{661}
+\]
+
+
+\[
+\left(\frac{3}{661}\right) = \left(\frac{661}{3}\right) \times (-1)^{\frac{(3-1)(661-1)}{4}}
+\]
+
+\[
+\frac{(3-1)(661-1)}{4} = \frac{2 \times 660}{4} = \frac{1320}{4} = 330 \quad \text{(par)}
+\]
+Deci factorul \((-1)^{330} = 1\).
+
+
+\[
+\left(\frac{661}{3}\right) = \left(\frac{661 \mod 3}{3}\right) = \left(\frac{1}{3}\right) = 1
+\]
+
+Prin urmare:
+\[
+\left(\frac{3}{661}\right) = 1
+\]
+
+Egalitatea este satisfăcută.  Testul este trecut pentru \(b = 3\).
+
+\subsection*{Testul cu martorul \(b = 5\)}
+\[
+\begin{aligned}
+5^4 &= 625 \\
+5^5 &= 3125 \equiv 3125 - 661 \times 4 = 3125 - 2644 = 481 \pmod{661} \\
+5^{10} &\equiv 481^2 = 231361 \equiv 231361 - 661 \times 350 = 231361 - 231350 = 11 \pmod{661} \\
+5^{20} &\equiv 11^2 = 121 \pmod{661} \\
+5^{40} &\equiv 121^2 = 14641 \equiv 14641 - 661 \times 22 = 14641 - 14542 = 99 \pmod{661} \\
+5^{80} &\equiv 99^2 = 9801 \equiv 9801 - 661 \times 14 = 9801 - 9254 = 547 \pmod{661} \\
+5^{160} &\equiv 547^2 = 299209 \equiv 299209 - 661 \times 452 = 299209 - 298772 = 437 \pmod{661} \\
+5^{320} &\equiv 437^2 = 190969 \equiv 190969 - 661 \times 289 = 190969 - 191029 = -60 \equiv 601 \pmod{661} \\
+5^{330} &= 5^{320} \times 5^{10} \equiv 601 \times 11 = 6611 \\
+&\equiv 6611 - 661 \times 10 = 6611 - 6610 = 1 \pmod{661}
+\end{aligned}
+\]
+
+Deci:
+\[
+5^{330} \equiv 1 \pmod{661}
+\]
+
+\[
+\left(\frac{5}{661}\right) = \left(\frac{661}{5}\right) \times (-1)^{\frac{(5-1)(661-1)}{4}}
+\]
+
+\[
+\frac{(5-1)(661-1)}{4} = \frac{4 \times 660}{4} = 660 \quad \text{(par)}
+\]
+Deci factorul \((-1)^{660} = 1\).
+
+\[
+\left(\frac{661}{5}\right) = \left(\frac{661 \mod 5}{5}\right) = \left(\frac{1}{5}\right) = 1
+\]
+
+Prin urmare:
+\[
+\left(\frac{5}{661}\right) = 1
+\]
+Egalitatea este satisfăcută.  Testul este trecut pentru \(b = 5\).
+
+
+Toți cei trei martori aleși (\(b = 2, 3, 5\)) trec testul Solovay-Strassen. 
+Conform teoriei, dacă numărul ar fi fost compus, probabilitatea să treacă \(k\) teste succesive este 
+\(\left(\frac{1}{2}\right)^k\).
+
+Pentru \(k = 3\):
+\[
+\left(\frac{1}{2}\right)^3 = \frac{1}{8} = 12.5\%
+\]
+
+Numărul 661 are probabilitarea de \(87.5\%\) să fie prim.
+
+\end{document}
