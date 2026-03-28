@@ -1,0 +1,148 @@
+################################################## alfabet.txt #######################################################################################
+ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789():; .,!?-'
+################################################## aux.txt #######################################################################################
+
+from collections import Counter
+import math
+
+
+def citeste_alfabet(fisier="alfabet.txt"):
+    with open(fisier, "r", encoding="utf-8") as f:
+        alfabet = f.read().strip()
+    return alfabet
+
+def get_text(fisier_sursa):
+    with open(fisier_sursa, "r", encoding="utf-8") as f:
+        text = f.read()
+    return text
+
+def write_text(fisier_destinatie, text):
+    with open(fisier_destinatie, "w", encoding="utf-8") as f:
+        f.write(text)
+
+def get_frequencies(text):
+    return Counter(text)
+
+def mod_invers(a, m):
+    a = a % m
+    for x in range(1, m):
+        if (a * x) % m == 1:
+            return x
+    return None
+
+def euclid_extins(a, b):
+    if a == 0:
+        return b, 0, 1
+    gcd, x1, y1 = euclid_extins(b % a, a)
+    x = y1 - (b // a) * x1
+    y = x1
+    return gcd, x, y
+
+def mod_invers_extins(a, m):
+    gcd, x, y = euclid_extins(a, m)
+    if gcd != 1:
+        return None
+    return x % m
+
+def char_index(ch, alfabet):
+    return alfabet.index(ch)
+
+def index_char(idx, alfabet):
+    return alfabet[idx % len(alfabet)]
+
+def text_nr(text, alfabet):
+    return [char_to_index(ch, alfabet) for ch in text]
+
+def nr_text(nr, alfabet):
+    return ''.join([index_to_char(n, alfabet) for n in nr])
+
+
+def decriptare_afin_blocuri(text_criptat, a, b, alfabet):
+   
+    n = len(alfabet)
+    n2 = n * n
+    
+    a_inv = mod_invers_extins(a, n2)
+    if a_inv is None:
+        raise ValueError(f"a={a} nu este inversabil modulo {n2}")
+    
+    text_decriptat = []
+    
+    for i in range(0, len(text_criptat), 2):
+        if i + 1 < len(text_criptat):
+            ch1 = text_criptat[i]
+            ch2 = text_criptat[i + 1]
+            
+            idx1 = char_index(ch1, alfabet)
+            idx2 = char_index(ch2, alfabet)
+            
+            valoare_bloc = idx1 * n + idx2
+            valoare_decriptata = ((valoare_bloc - b) * a_inv) % n2
+            
+            idx1_decriptat = valoare_decriptata // n
+            idx2_decriptat = valoare_decriptata % n
+            
+            text_decriptat.append(index_char(idx1_decriptat, alfabet))
+            text_decriptat.append(index_char(idx2_decriptat, alfabet))
+        else:
+            text_decriptat.append(text_criptat[i])
+    
+    return ''.join(text_decriptat)
+
+def decriptare_vigenere(text_criptat, cheie, alfabet):
+    n = len(alfabet)
+    text_decriptat = []
+    
+    cheie_extinsa = ''
+    j = 0
+    for i in range(len(text_criptat)):
+        if text_criptat[i] in alfabet:
+            cheie_extinsa += cheie[j % len(cheie)]
+            j += 1
+        else:
+            cheie_extinsa += text_criptat[i] 
+    j = 0
+    for i in range(len(text_criptat)):
+        char_criptat = text_criptat[i]
+        
+        if char_criptat in alfabet:
+            idx_c = char_index(char_criptat, alfabet)
+            idx_k = char_index(cheie_extinsa[i], alfabet)
+            
+            idx_p = (idx_c - idx_k) % n
+            
+            text_decriptat.append(index_char(idx_p, alfabet))
+        else:
+            text_decriptat.append(char_criptat)
+    
+    return ''.join(text_decriptat)
+
+
+################################################## main.txt #######################################################################################
+from aux import *
+
+def main():
+   
+    alfabet = citeste_alfabet("alfabet.txt")
+
+    # Exercițiul 3: Decriptare Afin pe blocuri de lungime 2
+    text_criptat_afin = get_text("sursa3.txt")  
+
+    a = 5 
+    b = 7 
+    text_decriptat_afin = decriptare_afin_blocuri(text_criptat_afin, a, b, alfabet)
+    write_text("destinatie_afin.txt", text_decriptat_afin)
+        
+
+    # Exercițiul 2: Decriptare Vigenère
+   
+    text_criptat_vigenere = get_text("sursa4.txt")
+    
+    cheie = "CHEIE"  
+    text_decriptat_vigenere = decriptare_vigenere(text_criptat_vigenere, cheie, alfabet)
+    write_text("destinatie_vigenere.txt", text_decriptat_vigenere)
+ 
+if __name__ == "__main__":
+    main()
+
+
